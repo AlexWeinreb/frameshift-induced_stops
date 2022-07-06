@@ -1,5 +1,10 @@
 # Do frameshifts of 1 bp induce more stop codons than frameshifts of 2 bp?
 
+# Motivation: observing a few genes, it seems like for some genes, adding a 
+# frameshift of 1 bp creates few stop codons, while adding a frameshift of 2 bp
+# creates a lot. For other genes, it seems to be the opposite.
+# This script tests a larger number of genes to see if this observation holds.
+
 
 
 library(wbData)
