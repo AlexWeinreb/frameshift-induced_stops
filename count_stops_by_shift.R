@@ -1,32 +1,13 @@
-# Get a random gene
+# Do frameshifts of 1 bp induce more stop codons than frameshifts of 2 bp?
+
+
 
 library(wbData)
 tx2g <- wb_load_tx2gene(284)
 
 
 
-
-nb_of_stop_codons <- function(seq){
-  shift_0 <- (Biostrings::codons(seq) |>
-                sapply(toString) |>
-                table())[c("TAA","TAG","TGA")] |>
-    sum(na.rm = TRUE)
-  
-  shift_1 <- (suppressWarnings(Biostrings::codons(seq[-1])) |>
-                sapply(toString) |>
-                table())[c("TAA","TAG","TGA")] |>
-    sum(na.rm = TRUE)
-  
-  shift_2 <- (suppressWarnings(Biostrings::codons(seq[-(1:2)])) |>
-                sapply(toString) |>
-                table())[c("TAA","TAG","TGA")] |>
-    sum(na.rm = TRUE)
-  data.frame(shift_0, shift_1, shift_2)
-}
-
-
-
-
+# Use Wormbase's RESTful API to recover the CDS sequence
 get_seq <- function(tx_id){
   cds_id <- stringr::str_remove(tx_id, "\\.[[:digit:]]+$")
   
@@ -41,6 +22,29 @@ get_seq <- function(tx_id){
          NA_character_
   )
 }
+
+# count nb of stop codons
+count_stops <- function(seq, shift){
+  seq <- substring(seq, shift+1)
+  n <- floor(nchar(seq)/3)
+  codons <- substring(seq, 3*(1:n) -2, 3*(1:n))
+  sum(codons == "TAA" | codons == "TAG" | codons == "TGA")
+}
+
+# Compute nb of stops for different frameshifts
+nb_of_stop_codons <- function(seq){
+  gene_length <- nchar(seq)
+  
+  if(count_stops(seq,0) != 1) warning("Incorrect number of codons without shift.")
+  
+  shift_1 <- count_stops(seq,1)
+  
+  shift_2 <- count_stops(seq,2)
+  
+  data.frame(gene_length, shift_1, shift_2)
+}
+
+
 
 
 tx_id <- sample(tx2g$transcript_id[tx2g$transcript_biotype == "protein_coding"], 2000)
@@ -70,7 +74,7 @@ ggplot(shifts) + theme_classic() +
   geom_point(aes(shift_1, shift_2)) +
   geom_abline(slope = 1, color = "grey") +
   coord_equal() +
-  # ggrepel::geom_text_repel(aes(shift_1, shift_2, label = tx_id)) +
+  ggrepel::geom_text_repel(aes(shift_1, shift_2, label = tx_id)) +
   scale_x_log10() + scale_y_log10()
 
 hist(shifts$shift_2/shifts$shift_1, breaks = 100)
