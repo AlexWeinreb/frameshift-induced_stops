@@ -105,21 +105,6 @@ ggplot(shifts) + theme_classic() +
   scale_x_log10() + scale_y_log10()
 
 
-mod <- lm(shift_2 ~ shift_1 + gene_length, data = shifts)
-
-plot(fitted.values(mod), residuals(mod))
-plot(log(fitted.values(mod)), residuals(mod))
-plot(log(fitted.values(mod)), log(residuals(mod)), xlim=c(-2,6))
-mod
-summary(mod)
-
-ggplot(shifts) + theme_classic() +
-  geom_point(aes(x = shift_1/gene_length, y = shift_2/gene_length),
-             alpha = .2) +
-  geom_abline(slope = 1, color = "grey")
-
-# Once removing the influence of gene_length, this relationship is even clearer
-
 
 
 
